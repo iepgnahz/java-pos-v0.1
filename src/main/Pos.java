@@ -1,11 +1,11 @@
 package main;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Pos {
     private Cart cart;
-    private List<Item> reducedItemList;
+    private List<Item> reducedItemList = new ArrayList<>();
 
     public Pos(Cart cart) {
         this.cart = cart;
@@ -13,6 +13,10 @@ public class Pos {
 
     public void reduceItemInCart() {
         List<Item> itemList = cart.getItems();
+        if (reducedItemList.size() == 0) {
+            reducedItemList.add(itemList.get(0));
+            return;
+        }
 
         itemList.forEach(item -> {
             Item finedItem = getItem(item.getBarcode());
@@ -35,19 +39,27 @@ public class Pos {
     }
 
     private Item getItem(String barcode) {
-        Optional<Item> item = reducedItemList.stream().filter(i -> i.getBarcode().equals(barcode)).findFirst();
-        return item.orElse(null);
+        Item item;
+        try {
+            item = reducedItemList.stream().filter(i -> i.getBarcode().equals(barcode)).findFirst().orElse(null);
+        } catch (NullPointerException e) {
+            item = null;
+        }
+
+        return item;
     }
 
-    public String printreceipt() {
+    public String printReceipt() {
         reduceItemInCart();
         String itemsString = "";
-        reducedItemList.forEach(item -> itemsString.concat(item.printItem()));
+        for (Item item : reducedItemList) {
+            itemsString += item.printItem();
+        }
 
         return "***<没钱赚商店>收据***\n" +
                 itemsString +
                 "----------------------\n" +
-                "总计：" + calculateTotalPrice() + "（元）\n" +
+                "总计：" + Util.formatNumber(calculateTotalPrice()) + "（元）\n" +
                 "**********************";
     }
 
